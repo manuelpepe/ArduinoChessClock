@@ -187,32 +187,7 @@ void ChessClock::onPlayTurn()
 {
     if (!paused)
     {
-        unsigned long time = millis();
-        if (timer_p1 <= 0)
-        {
-            handleOutOfTime(timer_p1, &display1);
-            return;
-        }
-        else if (timer_p2 <= 0)
-        {
-            handleOutOfTime(timer_p2, &display2);
-            return;
-        }
-        else
-        {
-            // If no one ran out of time, decrease current player's
-            // turn timer.
-            if (current_turn == 1)
-                timer_p1 -= time - timer;
-            else if (current_turn == 2)
-                timer_p2 -= time - timer;
-        }
-
-        // Update game timer and displays, and pass turn.
-        timer = time;
-        displayTime(timer_p1, display1);
-        displayTime(timer_p2, display2);
-        handlePassTurn();
+        playTurn();
     }
     else
     {
@@ -220,6 +195,36 @@ void ChessClock::onPlayTurn()
     }
 
     checkPause();
+}
+
+void ChessClock::playTurn()
+{
+    unsigned long time = millis();
+    if (timer_p1 <= 0)
+    {
+        handleOutOfTime(timer_p1, &display1);
+        return;
+    }
+    else if (timer_p2 <= 0)
+    {
+        handleOutOfTime(timer_p2, &display2);
+        return;
+    }
+    else
+    {
+        // If no one ran out of time, decrease current player's
+        // turn timer.
+        if (current_turn == 1)
+            timer_p1 -= time - timer;
+        else if (current_turn == 2)
+            timer_p2 -= time - timer;
+    }
+
+    // Update game timer and displays, and pass turn.
+    timer = time;
+    displayTime(timer_p1, display1);
+    displayTime(timer_p2, display2);
+    handlePassTurn();
 }
 
 void ChessClock::handleOutOfTime(long &timer, TM1637 *display)

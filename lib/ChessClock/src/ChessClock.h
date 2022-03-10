@@ -25,6 +25,7 @@ private:
     void handleOutOfTime(long &timer, TM1637 *display);
     void handlePassTurn();
     void passTurn(long &timer, int addon, TM1637 *display);
+    void playTurn();
     void checkPause();
 
     ClockConfig &config;
