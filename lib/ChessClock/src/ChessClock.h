@@ -38,8 +38,8 @@ private:
     void updateButtonsStatus();
     boolean getButtonStatus(Button button);
     boolean wasButtonPressed(Button button);
-    int button_to_pin[_TOTAL_BUTTONS];
 
+    // Attributes
     ClockConfig &config;
 
     int mode;
@@ -66,11 +66,7 @@ private:
     int addon_p1; // Increment time for player 1
     int addon_p2; // Increment time for player 2
 
-    // TODO: Update comment.
-    // prev_ flags are used to detect button pressing.
-    // If the prev_ flag is set to true on pressed,
-    // and to false on release. If the prev_ flag is true and the
-    // current status is released, the button has been pressed.
+    int button_to_pin[_TOTAL_BUTTONS];
     boolean prev_btn_status[_TOTAL_BUTTONS];
 };
 

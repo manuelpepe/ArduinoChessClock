@@ -70,10 +70,10 @@ ChessClock::ChessClock(ClockConfig &cfg) : config(cfg),
     pinMode(config.btn_p2_pin, INPUT_PULLUP);
     pinMode(config.btn_ctrl_pin, INPUT_PULLUP);
 
-    reset();
-
     display1.init();
     display2.init();
+
+    reset();
 
     button_to_pin[PLAYER1] = config.btn_p1_pin;
     button_to_pin[PLAYER2] = config.btn_p2_pin;
@@ -82,6 +82,9 @@ ChessClock::ChessClock(ClockConfig &cfg) : config(cfg),
 
 void ChessClock::reset()
 {
+    display1.clearDisplay();
+    display2.clearDisplay();
+
     mode = 0;
     current_turn = 1;
     timer = 0;
@@ -259,6 +262,7 @@ void ChessClock::handleOutOfTime(long &timer, TM1637 *display)
     timer = 0;
     displayTime(timer, *display, true);
     mode++;
+    playSound(config.buzzer_pin, 200, 1000);
 }
 
 void ChessClock::handlePassTurn()
@@ -292,5 +296,15 @@ void ChessClock::checkPause()
         paused = !paused;
         timer = millis();
         playSound(config.buzzer_pin, 1000, 20);
+    }
+}
+
+void ChessClock::onFinish()
+{
+    blinkDisplay(blink_timer, lit, mode, display1, display2, timer_p1, timer_p2);
+
+    if (wasButtonPressed(CTRL))
+    {
+        reset();
     }
 }
