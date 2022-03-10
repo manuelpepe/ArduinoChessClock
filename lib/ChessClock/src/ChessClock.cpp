@@ -74,6 +74,10 @@ ChessClock::ChessClock(ClockConfig &cfg) : config(cfg),
 
     display1.init();
     display2.init();
+
+    button_to_pin[PLAYER1] = config.btn_p1_pin;
+    button_to_pin[PLAYER2] = config.btn_p2_pin;
+    button_to_pin[CTRL] = config.btn_ctrl_pin;
 }
 
 void ChessClock::reset()
@@ -94,9 +98,32 @@ void ChessClock::reset()
     addon_p1 = 0;
     addon_p2 = 0;
 
-    prev_p1_btn = false;
-    prev_p2_btn = false;
-    prev_fun_btn = false;
+    for (int i = 0; i < _TOTAL_BUTTONS; i++)
+    {
+        prev_btn_status[i] = false;
+    }
+}
+
+boolean ChessClock::wasButtonPressed(Button button)
+{
+    /* Returns true if `button` was pressed on the previous loop and
+    is now released */
+    return prev_btn_status[button] && !getButtonStatus(button);
+}
+
+boolean ChessClock::getButtonStatus(Button button)
+{
+    int pin = button_to_pin[button];
+    return (boolean)digitalRead(pin);
+}
+
+void ChessClock::updateButtonsStatus()
+{
+    for (int i = 0; i < _TOTAL_BUTTONS; i++)
+    {
+        prev_btn_status[i] = getButtonStatus((Button)i);
+        delay(10);
+    }
 }
 
 void ChessClock::loop()
@@ -127,6 +154,10 @@ void ChessClock::loop()
         onFinish();
         break;
     }
+
+    // Update button status at the end, prev_status == current_status will always
+    // be true and wasButtonPressed() will always be false.
+    updateButtonsStatus();
 }
 
 void ChessClock::onSetTime(TM1637 *display)
@@ -141,9 +172,8 @@ void ChessClock::onSetTime(TM1637 *display)
     long d_seconds = 1000 * (60 * (long)minutes + 10 * (long)seconds);
     displayTime(d_seconds, *display, true);
 
-    boolean state_fun_btn = digitalRead(config.btn_ctrl_pin);
-    minutes = minutes + 1;
-    if (d_seconds != 0 && !state_fun_btn && prev_fun_btn)
+    // CTRL confirms time but 0 seconds game is not allowed
+    if (d_seconds != 0 && wasButtonPressed(CTRL))
     {
         if (mode == 0)
             timer_p1 = d_seconds;
@@ -152,7 +182,6 @@ void ChessClock::onSetTime(TM1637 *display)
         playSound(config.buzzer_pin, 1000, 20);
         mode++;
     }
-    prev_fun_btn = state_fun_btn;
 }
 
 void ChessClock::onSetAddonTime(TM1637 *display)
@@ -163,9 +192,8 @@ void ChessClock::onSetAddonTime(TM1637 *display)
 
     displayTime(d_seconds, *display, true);
 
-    boolean state_fun_btn = digitalRead(config.btn_ctrl_pin);
-
-    if (!state_fun_btn && prev_fun_btn)
+    // CTRL confirms time
+    if (wasButtonPressed(CTRL))
     {
         if (mode == 1)
         {
@@ -180,7 +208,6 @@ void ChessClock::onSetAddonTime(TM1637 *display)
         mode++;
         playSound(config.buzzer_pin, 1000, 20);
     }
-    prev_fun_btn = state_fun_btn;
 }
 
 void ChessClock::onPlayTurn()
@@ -236,24 +263,14 @@ void ChessClock::handleOutOfTime(long &timer, TM1637 *display)
 
 void ChessClock::handlePassTurn()
 {
-    delay(10);
-    boolean state_p1_btn = digitalRead(config.btn_p1_pin);
-    delay(10);
-    boolean state_p2_btn = digitalRead(config.btn_p2_pin);
-
-    if (current_turn == 1 && !state_p1_btn && prev_p1_btn)
+    if (current_turn == 1 && wasButtonPressed(PLAYER1))
     {
-        // Player 1 hits button on his turn.
         passTurn(timer_p1, addon_p1, &display1);
     }
-    else if (current_turn == 2 && !state_p2_btn && prev_p2_btn)
+    else if (current_turn == 2 && wasButtonPressed(PLAYER2))
     {
-        // Player 2 hits button on his turn.
         passTurn(timer_p2, addon_p2, &display2);
     }
-
-    prev_p1_btn = state_p1_btn;
-    prev_p2_btn = state_p2_btn;
 }
 
 void ChessClock::passTurn(long &timer, int addon, TM1637 *display)
@@ -270,13 +287,10 @@ void ChessClock::passTurn(long &timer, int addon, TM1637 *display)
 
 void ChessClock::checkPause()
 {
-    boolean state_fun_btn = digitalRead(config.btn_ctrl_pin);
-    if (!state_fun_btn && prev_fun_btn)
+    if (wasButtonPressed(CTRL))
     {
         paused = !paused;
         timer = millis();
         playSound(config.buzzer_pin, 1000, 20);
     }
-
-    prev_fun_btn = state_fun_btn;
 }

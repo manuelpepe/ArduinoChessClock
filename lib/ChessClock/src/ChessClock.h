@@ -14,6 +14,14 @@ public:
     void loop();  // Should be called once in `loop()`
     void reset(); // Resets state
 
+    enum Button
+    {
+        PLAYER1 = 0,
+        PLAYER2,
+        CTRL,
+        _TOTAL_BUTTONS = CTRL
+    };
+
 private:
     // State handlers
     void onSetTime(TM1637 *display);
@@ -27,6 +35,10 @@ private:
     void passTurn(long &timer, int addon, TM1637 *display);
     void playTurn();
     void checkPause();
+    void updateButtonsStatus();
+    boolean getButtonStatus(Button button);
+    boolean wasButtonPressed(Button button);
+    int button_to_pin[_TOTAL_BUTTONS];
 
     ClockConfig &config;
 
@@ -54,13 +66,12 @@ private:
     int addon_p1; // Increment time for player 1
     int addon_p2; // Increment time for player 2
 
+    // TODO: Update comment.
     // prev_ flags are used to detect button pressing.
     // If the prev_ flag is set to true on pressed,
     // and to false on release. If the prev_ flag is true and the
     // current status is released, the button has been pressed.
-    boolean prev_p1_btn;
-    boolean prev_p2_btn;
-    boolean prev_fun_btn;
+    boolean prev_btn_status[_TOTAL_BUTTONS];
 };
 
 #endif
