@@ -244,7 +244,7 @@ void ChessClock::handlePassTurn()
     if (current_turn == 1 && !state_p1_btn && prev_p1_btn)
     {
         // Player 1 hits button on his turn.
-        passTurn(timer_p2, addon_p2, &display2);
+        passTurn(timer_p1, addon_p1, &display1);
     }
     else if (current_turn == 2 && !state_p2_btn && prev_p2_btn)
     {
