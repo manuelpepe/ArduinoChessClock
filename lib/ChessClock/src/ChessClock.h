@@ -35,6 +35,8 @@ private:
     void passTurn(long &timer, int addon, TM1637 *display);
     void playTurn();
     void checkPause();
+    void blinkDisplays();
+
     void updateButtonsStatus();
     boolean getButtonStatus(Button button);
     boolean wasButtonPressed(Button button);

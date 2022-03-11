@@ -31,27 +31,6 @@ void displayTime(long countdown, TM1637 d, boolean force_low_precission = false)
     d.display(3, parts[1] % 10);
 }
 
-void blinkDisplay(long &blink_timer, boolean &lit, int mode, TM1637 display_p1, TM1637 display_p2, int timer_p1, int timer_p2)
-{
-    unsigned long time = millis();
-    if (time - blink_timer >= 1000)
-    {
-        if (lit)
-        {
-            display_p1.clearDisplay();
-            display_p2.clearDisplay();
-            lit = false;
-        }
-        else
-        {
-            displayTime(timer_p1, display_p1, mode == 5);
-            displayTime(timer_p2, display_p2, mode == 5);
-            lit = true;
-        }
-        blink_timer = time;
-    }
-}
-
 void playSound(int buzzer, int tone_val, int duration)
 {
     tone(buzzer, tone_val);
@@ -240,7 +219,7 @@ void ChessClock::onPlayTurn()
     }
     else
     {
-        blinkDisplay(blink_timer, lit, mode, display1, display2, timer_p1, timer_p2);
+        blinkDisplays();
     }
 
     checkPause();
@@ -318,9 +297,30 @@ void ChessClock::checkPause()
     }
 }
 
+void ChessClock::blinkDisplays()
+{
+    unsigned long time = millis();
+    if (time - blink_timer >= 1000)
+    {
+        if (lit)
+        {
+            display1.clearDisplay();
+            display2.clearDisplay();
+            lit = false;
+        }
+        else
+        {
+            displayTime(timer_p1, display1, mode == 5);
+            displayTime(timer_p2, display2, mode == 5);
+            lit = true;
+        }
+        blink_timer = time;
+    }
+}
+
 void ChessClock::onFinish()
 {
-    blinkDisplay(blink_timer, lit, mode, display1, display2, timer_p1, timer_p2);
+    blinkDisplays();
 
     if (wasButtonPressed(CTRL))
     {
