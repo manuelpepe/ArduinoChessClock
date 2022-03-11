@@ -38,6 +38,7 @@ private:
     void updateButtonsStatus();
     boolean getButtonStatus(Button button);
     boolean wasButtonPressed(Button button);
+    void handleResetOnHold();
 
     // Attributes
     ClockConfig &config;
@@ -45,6 +46,8 @@ private:
     int mode;
     int current_turn;    // 1 or 2 depending on which player's turn it is.
     unsigned long timer; // Running time of game as miliseconds
+
+    long reset_on_hold_timer;
 
     long blink_timer; // For display blinking
     boolean lit;      // For display blinking

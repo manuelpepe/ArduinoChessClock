@@ -89,6 +89,7 @@ void ChessClock::reset()
     current_turn = 1;
     timer = 0;
 
+    reset_on_hold_timer = 0;
     blink_timer = 0;
     lit = true;
 
@@ -131,6 +132,11 @@ void ChessClock::updateButtonsStatus()
 
 void ChessClock::loop()
 {
+    if (getButtonStatus(CTRL))
+    {
+        handleResetOnHold();
+    }
+
     switch (mode)
     {
     case 0:
@@ -161,6 +167,19 @@ void ChessClock::loop()
     // Update button status at the end, prev_status == current_status will always
     // be true and wasButtonPressed() will always be false.
     updateButtonsStatus();
+}
+
+void ChessClock::handleResetOnHold()
+{
+    unsigned long time = millis();
+    if (!wasButtonPressed(CTRL))
+    {
+        reset_on_hold_timer = time;
+    }
+    if (time - reset_on_hold_timer >= 3000)
+    {
+        reset();
+    }
 }
 
 void ChessClock::onSetTime(TM1637 *display)
