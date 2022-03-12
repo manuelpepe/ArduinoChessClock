@@ -152,13 +152,14 @@ void ChessClock::loop()
 void ChessClock::handleResetOnHold()
 {
     unsigned long time = millis();
-    if (!wasButtonPressed(CTRL))
+    if (!prev_btn_status[CTRL])
     {
         reset_on_hold_timer = time;
     }
     if (time - reset_on_hold_timer >= 3000)
     {
         reset();
+        reset_on_hold_timer = time;
     }
 }
 
