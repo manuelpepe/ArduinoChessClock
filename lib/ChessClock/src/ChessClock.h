@@ -26,6 +26,7 @@ private:
     // State handlers
     void onSetTime(Display *display);
     void onSetAddonTime(Display *display);
+    void onGameStart();
     void onPlayTurn();
     void onFinish();
 

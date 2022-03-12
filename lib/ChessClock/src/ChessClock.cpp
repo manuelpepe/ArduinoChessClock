@@ -103,10 +103,14 @@ void ChessClock::loop()
         break;
 
     case 4:
-        onPlayTurn();
+        onGameStart();
         break;
 
     case 5:
+        onPlayTurn();
+        break;
+
+    case 6:
         onFinish();
         break;
     }
@@ -178,6 +182,12 @@ void ChessClock::onSetAddonTime(Display *display)
         mode++;
         playSound(config.buzzer_pin, 1000, 20);
     }
+}
+
+void ChessClock::onGameStart()
+{
+    timer = millis();
+    mode++;
 }
 
 void ChessClock::onPlayTurn()
