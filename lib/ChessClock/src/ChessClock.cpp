@@ -97,14 +97,15 @@ boolean ChessClock::wasButtonPressed(Button button)
 boolean ChessClock::getButtonStatus(Button button)
 {
     int pin = button_to_pin[button];
-    return (boolean)digitalRead(pin);
+    return static_cast<boolean>(digitalRead(pin));
 }
 
 void ChessClock::updateButtonsStatus()
 {
-    for (int i = 0; i < _TOTAL_BUTTONS; i++)
+    for (int i = 0; i <= _TOTAL_BUTTONS; i++)
     {
-        prev_btn_status[i] = getButtonStatus((Button)i);
+        Button button = static_cast<Button>(i);
+        prev_btn_status[i] = getButtonStatus(button);
         delay(10);
     }
 }
@@ -166,7 +167,7 @@ void ChessClock::onSetTime(TM1637 *display)
     display->set(2);
     int minutes = pot_min.getReading(9);
     delay(10);
-    int seconds = pot_min.getReading(5);
+    int seconds = pot_sec.getReading(5);
     delay(10);
 
     minutes = available_minutes[minutes];

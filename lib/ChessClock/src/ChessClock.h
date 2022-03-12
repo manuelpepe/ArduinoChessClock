@@ -71,8 +71,8 @@ private:
     int addon_p1; // Increment time for player 1
     int addon_p2; // Increment time for player 2
 
-    int button_to_pin[_TOTAL_BUTTONS];
-    boolean prev_btn_status[_TOTAL_BUTTONS];
+    int button_to_pin[_TOTAL_BUTTONS + 1];
+    boolean prev_btn_status[_TOTAL_BUTTONS + 1];
 };
 
 #endif
