@@ -1,35 +1,7 @@
 #include <string.h>
 #include "Arduino.h"
 #include "ChessClock.h"
-#include "TM1637.h"
-
-void displayTime(long countdown, TM1637 d, boolean force_low_precission = false)
-{
-    /* Displays formatted `current_time` (miliseconds) into `d` as `minutes:seconds`. If `force_low_precission` is false,
-    `seconds:miliseconds` format will be used when displaying less than 10000 ms (10 seconds).  */
-    int parts[2];
-    if (force_low_precission || countdown >= 10000)
-    {
-        countdown /= 1000;
-        int minutes = countdown / 60;
-        int seconds = countdown % 60;
-        parts[0] = minutes;
-        parts[1] = seconds;
-    }
-    else
-    {
-        int seconds = (countdown / 1000) % 60;
-        int millis = countdown % (seconds * 1000) / 10;
-        parts[0] = seconds;
-        parts[1] = millis;
-    }
-
-    d.point(1);
-    d.display(0, parts[0] / 10 % 10);
-    d.display(1, parts[0] % 10);
-    d.display(2, parts[1] / 10 % 10);
-    d.display(3, parts[1] % 10);
-}
+#include "Display.h"
 
 void playSound(int buzzer, int tone_val, int duration)
 {
@@ -49,9 +21,6 @@ ChessClock::ChessClock(ClockConfig &cfg) : config(cfg),
     pinMode(config.btn_p2_pin, INPUT_PULLUP);
     pinMode(config.btn_ctrl_pin, INPUT_PULLUP);
 
-    display1.init();
-    display2.init();
-
     reset();
 
     button_to_pin[PLAYER1] = config.btn_p1_pin;
@@ -61,16 +30,14 @@ ChessClock::ChessClock(ClockConfig &cfg) : config(cfg),
 
 void ChessClock::reset()
 {
-    display1.clearDisplay();
-    display2.clearDisplay();
+    display1.clear();
+    display2.clear();
 
     mode = 0;
     current_turn = 1;
     timer = 0;
 
     reset_on_hold_timer = 0;
-    blink_timer = 0;
-    lit = true;
 
     paused = false;
     first_turn = true;
@@ -163,17 +130,17 @@ void ChessClock::handleResetOnHold()
     }
 }
 
-void ChessClock::onSetTime(TM1637 *display)
+void ChessClock::onSetTime(Display *display)
 {
-    display->set(2);
+    display->setBrightness(2);
     int minutes = pot_min.getReading(9);
     delay(10);
     int seconds = pot_sec.getReading(5);
     delay(10);
 
     minutes = available_minutes[minutes];
-    long d_seconds = 1000 * (60 * (long)minutes + 10 * (long)seconds);
-    displayTime(d_seconds, *display, true);
+    unsigned long d_seconds = 1000 * (60 * (long)minutes + 10 * (long)seconds);
+    display->displayTime(d_seconds, true);
 
     // CTRL confirms time but 0 seconds game is not allowed
     if (d_seconds != 0 && wasButtonPressed(CTRL))
@@ -187,13 +154,13 @@ void ChessClock::onSetTime(TM1637 *display)
     }
 }
 
-void ChessClock::onSetAddonTime(TM1637 *display)
+void ChessClock::onSetAddonTime(Display *display)
 {
     delay(10);
     int seconds = pot_min.getReading(10);
-    long d_seconds = 1000 * (long)seconds;
+    unsigned long d_seconds = 1000 * (long)seconds;
 
-    displayTime(d_seconds, *display, true);
+    display->displayTime(d_seconds, true);
 
     // CTRL confirms time
     if (wasButtonPressed(CTRL))
@@ -201,12 +168,12 @@ void ChessClock::onSetAddonTime(TM1637 *display)
         if (mode == 1)
         {
             addon_p1 = d_seconds;
-            displayTime(timer_p1, display1, true);
+            display->displayTime(timer_p1, true);
         }
         else if (mode == 3)
         {
             addon_p1 = d_seconds;
-            displayTime(timer_p2, display2, true);
+            display->displayTime(timer_p2, true);
         }
         mode++;
         playSound(config.buzzer_pin, 1000, 20);
@@ -252,15 +219,15 @@ void ChessClock::playTurn()
 
     // Update game timer and displays, and pass turn.
     timer = time;
-    displayTime(timer_p1, display1);
-    displayTime(timer_p2, display2);
+    display1.displayTime(timer_p1);
+    display2.displayTime(timer_p2);
     handlePassTurn();
 }
 
-void ChessClock::handleOutOfTime(long &timer, TM1637 *display)
+void ChessClock::handleOutOfTime(unsigned long &timer, Display *display)
 {
     timer = 0;
-    displayTime(timer, *display, true);
+    display->displayTime(timer, true);
     mode++;
     playSound(config.buzzer_pin, 200, 1000);
 }
@@ -277,7 +244,7 @@ void ChessClock::handlePassTurn()
     }
 }
 
-void ChessClock::passTurn(long &timer, int addon, TM1637 *display)
+void ChessClock::passTurn(unsigned long &timer, int addon, Display *display)
 {
     current_turn = 1;
     if (!first_turn)
@@ -285,7 +252,7 @@ void ChessClock::passTurn(long &timer, int addon, TM1637 *display)
         timer += addon;
     }
     first_turn = false;
-    displayTime(timer, *display);
+    display->displayTime(timer);
     playSound(config.buzzer_pin, 1000, 20);
 }
 
@@ -302,22 +269,8 @@ void ChessClock::checkPause()
 void ChessClock::blinkDisplays()
 {
     unsigned long time = millis();
-    if (time - blink_timer >= 1000)
-    {
-        if (lit)
-        {
-            display1.clearDisplay();
-            display2.clearDisplay();
-            lit = false;
-        }
-        else
-        {
-            displayTime(timer_p1, display1, mode == 5);
-            displayTime(timer_p2, display2, mode == 5);
-            lit = true;
-        }
-        blink_timer = time;
-    }
+    display1.blink(time);
+    display2.blink(time);
 }
 
 void ChessClock::onFinish()
