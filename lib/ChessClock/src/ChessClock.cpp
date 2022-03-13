@@ -40,7 +40,6 @@ void ChessClock::reset()
     reset_on_hold_timer = 0;
 
     paused = false;
-    first_turn = true;
 
     timer_p1 = 0;
     timer_p2 = 0;
@@ -256,12 +255,8 @@ void ChessClock::handlePassTurn()
 
 void ChessClock::passTurn(unsigned long &timer, int addon, Display *display)
 {
-    current_turn = 1;
-    if (!first_turn)
-    {
-        timer += addon;
-    }
-    first_turn = false;
+    current_turn = (current_turn == 1) ? 2 : 1;
+    timer += addon;
     display->displayTime(timer);
     playSound(config.buzzer_pin, 1000, 20);
 }

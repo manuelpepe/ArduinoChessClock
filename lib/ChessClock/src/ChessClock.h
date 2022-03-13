@@ -57,7 +57,6 @@ private:
     const int available_minutes[10];
 
     boolean paused;
-    boolean first_turn; // Used to avoid addon time on first turn.
 
     Display display1;
     Display display2;
