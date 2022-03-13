@@ -114,7 +114,7 @@ void ChessClock::loop()
         break;
     }
 
-    // Update button status at the end, prev_status == current_status will always
+    // Update button status at the end, otherwise prev_status == current_status will always
     // be true and wasButtonPressed() will always be false.
     updateButtonsStatus();
 }
