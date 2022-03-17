@@ -22,15 +22,27 @@ public:
         _TOTAL_BUTTONS = CTRL
     };
 
+    enum Mode
+    {
+        SET_TIME_PLAYER_1 = 0,
+        SET_ADDON_PLAYER_1,
+        SET_TIME_PLAYER_2,
+        SET_ADDON_PLAYER_2,
+        GAME_START,
+        PLAY_TURN,
+        FINISH
+    };
+
 private:
     // State handlers
-    void onSetTime(Display *display);
-    void onSetAddonTime(Display *display);
+    void onSetTime(Display *display, Mode next_mode);
+    void onSetAddonTime(Display *display, Mode next_mode);
     void onGameStart();
     void onPlayTurn();
     void onFinish();
 
     // Helper methods
+    void startGame();
     void handleOutOfTime(unsigned long &timer, Display *display);
     void handlePassTurn();
     void passTurn(unsigned long &timer, int addon, Display *display);
@@ -46,7 +58,7 @@ private:
     // Attributes
     ClockConfig &config;
 
-    int mode;
+    Mode mode;
     int current_turn;    // 1 or 2 depending on which player's turn it is.
     unsigned long timer; // Running time of game as miliseconds
 

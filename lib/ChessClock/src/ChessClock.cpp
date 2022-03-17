@@ -33,7 +33,7 @@ void ChessClock::reset()
     display1.clear();
     display2.clear();
 
-    mode = 0;
+    mode = SET_TIME_PLAYER_1;
     current_turn = 1;
     timer = 0;
 
@@ -85,31 +85,31 @@ void ChessClock::loop()
 
     switch (mode)
     {
-    case 0:
-        onSetTime(&display1);
+    case SET_TIME_PLAYER_1:
+        onSetTime(&display1, SET_ADDON_PLAYER_1);
         break;
 
-    case 1:
-        onSetAddonTime(&display1);
+    case SET_ADDON_PLAYER_1:
+        onSetAddonTime(&display1, SET_TIME_PLAYER_2);
         break;
 
-    case 2:
-        onSetTime(&display2);
+    case SET_TIME_PLAYER_2:
+        onSetTime(&display2, SET_ADDON_PLAYER_2);
         break;
 
-    case 3:
-        onSetAddonTime(&display2);
+    case SET_ADDON_PLAYER_2:
+        onSetAddonTime(&display2, GAME_START);
         break;
 
-    case 4:
+    case GAME_START:
         onGameStart();
         break;
 
-    case 5:
+    case PLAY_TURN:
         onPlayTurn();
         break;
 
-    case 6:
+    case FINISH:
         onFinish();
         break;
     }
@@ -133,7 +133,7 @@ void ChessClock::handleResetOnHold()
     }
 }
 
-void ChessClock::onSetTime(Display *display)
+void ChessClock::onSetTime(Display *display, Mode next_mode)
 {
     display->setBrightness(2);
     int minutes = pot_min.getReading(9);
@@ -153,13 +153,12 @@ void ChessClock::onSetTime(Display *display)
         else if (mode == 2)
             timer_p2 = d_seconds;
         playSound(config.buzzer_pin, 1000, 20);
-        mode++;
+        mode = next_mode;
     }
 }
 
-void ChessClock::onSetAddonTime(Display *display)
+void ChessClock::onSetAddonTime(Display *display, Mode next_mode)
 {
-    delay(10);
     int seconds = pot_min.getReading(10);
     unsigned long d_seconds = 1000 * (long)seconds;
 
@@ -178,15 +177,29 @@ void ChessClock::onSetAddonTime(Display *display)
             addon_p1 = d_seconds;
             display->displayTime(timer_p2, true);
         }
-        mode++;
         playSound(config.buzzer_pin, 1000, 20);
+        mode = next_mode;
     }
 }
 
 void ChessClock::onGameStart()
 {
+    if (wasButtonPressed(PLAYER1))
+    {
+        current_turn = 2;
+        startGame();
+    }
+    else if (wasButtonPressed(PLAYER2))
+    {
+        current_turn = 1;
+        startGame();
+    }
+}
+
+void ChessClock::startGame()
+{
     timer = millis();
-    mode++;
+    mode = PLAY_TURN;
 }
 
 void ChessClock::onPlayTurn()
@@ -237,7 +250,7 @@ void ChessClock::handleOutOfTime(unsigned long &timer, Display *display)
 {
     timer = 0;
     display->displayTime(timer, true);
-    mode++;
+    mode = FINISH;
     playSound(config.buzzer_pin, 200, 1000);
 }
 
